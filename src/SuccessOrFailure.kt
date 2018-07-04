@@ -13,32 +13,32 @@ import kotlin.internal.contracts.*
 import kotlin.jvm.JvmField
 
 public inline class SuccessOrFailure<out T> @PublishedApi internal constructor(
-    @PublishedApi internal val _value: Any?
+    @PublishedApi internal val value: Any?
 ) : Serializable {
     // discovery
 
-    public val isSuccess: Boolean get() = _value !is Failure
-    public val isFailure: Boolean get() = _value is Failure
+    public val isSuccess: Boolean get() = value !is Failure
+    public val isFailure: Boolean get() = value is Failure
 
     // value retrieval
 
     public fun getOrThrow(): T =
-        when (_value) {
-            is Failure -> throw _value.exception
-            else -> _value as T
+        when (value) {
+            is Failure -> throw value.exception
+            else -> value as T
         }
 
     public fun getOrNull(): T? =
-        when (_value) {
+        when (value) {
             is Failure -> null
-            else -> _value as T
+            else -> value as T
         }
 
     // exception retrieval
 
     public fun exceptionOrNull(): Throwable? =
-        when (_value) {
-            is Failure -> _value.exception
+        when (value) {
+            is Failure -> value.exception
             else -> null
         }
 
@@ -48,11 +48,11 @@ public inline class SuccessOrFailure<out T> @PublishedApi internal constructor(
 // todo: workaround for is/as bugs
     override fun equals(other: Any?): Boolean {
         val other = other as? SuccessOrFailure<*> ?: return false
-        return _value == other._value
+        return value == other.value
     }
 
-    override fun hashCode(): Int = _value?.hashCode() ?: 0
-    override fun toString(): String = _value.toString()
+    override fun hashCode(): Int = value?.hashCode() ?: 0
+    override fun toString(): String = value.toString()
 
     // companion with constructors
 
@@ -63,18 +63,16 @@ public inline class SuccessOrFailure<out T> @PublishedApi internal constructor(
         @InlineOnly public inline fun <T> failure(exception: Throwable): SuccessOrFailure<T> =
             SuccessOrFailure(Failure(exception))
     }
-}
 
-// top-Level internal failure-marker class
-// todo: maybe move it to another kotlin.internal package?
-@PublishedApi
-internal class Failure @PublishedApi internal constructor(
-    @JvmField
-    val exception: Throwable
-) : Serializable {
-    override fun equals(other: Any?): Boolean = other is Failure && exception == other.exception
-    override fun hashCode(): Int = exception.hashCode()
-    override fun toString(): String = "Failure($exception)"
+    @PublishedApi
+    internal class Failure @PublishedApi internal constructor(
+        @JvmField
+        val exception: Throwable
+    ) : Serializable {
+        override fun equals(other: Any?): Boolean = other is Failure && exception == other.exception
+        override fun hashCode(): Int = exception.hashCode()
+        override fun toString(): String = "Failure($exception)"
+    }
 }
 
 @InlineOnly public inline fun <R> runCatching(block: () -> R): SuccessOrFailure<R> {
@@ -102,9 +100,9 @@ internal class Failure @PublishedApi internal constructor(
 // -- extensions ---
 
 @InlineOnly public inline fun <R, T : R> SuccessOrFailure<T>.getOrElse(defaultValue: () -> R): R =
-    when(_value) {
-        is Failure -> defaultValue()
-        else -> _value as T
+    when(value) {
+        is SuccessOrFailure.Failure -> defaultValue()
+        else -> value as T
     }
 
 // transformation
@@ -113,9 +111,9 @@ internal class Failure @PublishedApi internal constructor(
     contract {
         callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
     }
-    return when(_value) {
-        is Failure -> SuccessOrFailure(_value) // cannot cast here -- casts don't work (todo)
-        else -> SuccessOrFailure.success(transform(_value as T))
+    return when(value) {
+        is SuccessOrFailure.Failure -> SuccessOrFailure(value) // cannot cast here -- casts don't work (todo)
+        else -> SuccessOrFailure.success(transform(value as T))
     }
 }
 
@@ -123,9 +121,9 @@ internal class Failure @PublishedApi internal constructor(
     contract {
         callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
     }
-    return when(_value) {
-        is Failure -> SuccessOrFailure(_value) // cannot cast here -- casts don't work (todo)
-        else -> runCatching { transform(_value as T) }
+    return when(value) {
+        is SuccessOrFailure.Failure -> SuccessOrFailure(value) // cannot cast here -- casts don't work (todo)
+        else -> runCatching { transform(value as T) }
     }
 }
 
@@ -133,8 +131,8 @@ internal class Failure @PublishedApi internal constructor(
     contract {
         callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
     }
-    return when(_value) {
-        is Failure -> SuccessOrFailure.success(transform(_value.exception))
+    return when(value) {
+        is SuccessOrFailure.Failure -> SuccessOrFailure.success(transform(value.exception))
         else -> this
     }
 }
@@ -143,9 +141,9 @@ internal class Failure @PublishedApi internal constructor(
     contract {
         callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
     }
-    val _value = _value // workaround for inline classes BE bug
-    return when(_value) {
-        is Failure -> runCatching { transform(_value.exception) }
+    val value = value // workaround for inline classes BE bug
+    return when(value) {
+        is SuccessOrFailure.Failure -> runCatching { transform(value.exception) }
         else -> this
     }
 }
@@ -156,7 +154,7 @@ internal class Failure @PublishedApi internal constructor(
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
-    if (_value is Failure) block(_value.exception)
+    if (value is SuccessOrFailure.Failure) block(value.exception)
     return this
 }
 
@@ -164,7 +162,7 @@ internal class Failure @PublishedApi internal constructor(
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
-    if (_value !is Failure) block(_value as T)
+    if (value !is SuccessOrFailure.Failure) block(value as T)
     return this
 }
 
