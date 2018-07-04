@@ -14,6 +14,18 @@ class SuccessOrFailureTest {
         checkFailure(fail, "F", true)
     }
 
+    @Test
+    fun testConstructedSuccess() {
+        val ok = SuccessOrFailure.success("OK")
+        checkSuccess(ok, "OK", true)
+    }
+
+    @Test
+    fun testConstructedFailure() {
+        val fail = SuccessOrFailure.failure<Unit>(IllegalStateException("F"))
+        checkFailure(fail, "F", true)
+    }
+
     private fun <T> checkSuccess(ok: SuccessOrFailure<T>, v: T, topLevel: Boolean = false) {
         assertTrue(ok.isSuccess)
         assertFalse(ok.isFailure)
@@ -29,6 +41,12 @@ class SuccessOrFailureTest {
             checkSuccess(ok.recoverCatching { 42 }, "OK")
             checkSuccess(ok.recoverCatching { error("FAIL") }, "OK")
         }
+        var sCnt = 0
+        var fCnt = 0
+        ok.onSuccess { sCnt++ }
+        ok.onFailure { fCnt++ }
+        assertEquals(1, sCnt)
+        assertEquals(0, fCnt)
     }
 
     private fun <T> checkFailure(fail: SuccessOrFailure<T>, msg: String, topLevel: Boolean = false) {
@@ -46,6 +64,11 @@ class SuccessOrFailureTest {
             checkSuccess(fail.recoverCatching { 42 }, 42)
             checkFailure(fail.recoverCatching { error("FAIL") }, "FAIL")
         }
+        var sCnt = 0
+        var fCnt = 0
+        fail.onSuccess { sCnt++ }
+        fail.onFailure { fCnt++ }
+        assertEquals(0, sCnt)
+        assertEquals(1, fCnt)
     }
-
 }
