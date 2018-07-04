@@ -105,7 +105,7 @@ internal class Failure @PublishedApi internal constructor(
         callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
     }
     return when(_value) {
-        is Failure -> SuccessOrFailure(_value)
+        is Failure -> SuccessOrFailure(_value) // cannot cast here -- casts don't work (todo)
         else -> SuccessOrFailure.success(transform(_value as T))
     }
 }
@@ -115,7 +115,7 @@ internal class Failure @PublishedApi internal constructor(
         callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
     }
     return when(_value) {
-        is Failure -> SuccessOrFailure(_value)
+        is Failure -> SuccessOrFailure(_value) // cannot cast here -- casts don't work (todo)
         else -> runCatching { transform(_value as T) }
     }
 }
@@ -134,8 +134,9 @@ internal class Failure @PublishedApi internal constructor(
     contract {
         callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
     }
+    val _value = _value // workaround for inline classes BE bug
     return when(_value) {
-        is Failure -> runCatching { transform((_value as Failure).exception) }
+        is Failure -> runCatching { transform(_value.exception) }
         else -> this
     }
 }
