@@ -14,7 +14,7 @@ import kotlin.jvm.JvmField
 
 public inline class SuccessOrFailure<out T> @PublishedApi internal constructor(
     @PublishedApi internal val _value: Any?
-) : java.io.Serializable {
+) : Serializable {
     // discovery
 
     public val isSuccess: Boolean get() = _value !is Failure
@@ -44,8 +44,7 @@ public inline class SuccessOrFailure<out T> @PublishedApi internal constructor(
 
     // identity
 
-// todo:
-//    fun equals(other: SuccessOrFailure<*>): Boolean = _value == other._value
+    override fun equals(other: Any?): Boolean = other is SuccessOrFailure<*> && _value == other._value
     override fun hashCode(): Int = _value?.hashCode() ?: 0
     override fun toString(): String = _value.toString()
 
@@ -66,7 +65,11 @@ public inline class SuccessOrFailure<out T> @PublishedApi internal constructor(
 internal class Failure @PublishedApi internal constructor(
     @JvmField
     val exception: Throwable
-) : Serializable
+) : Serializable {
+    override fun equals(other: Any?): Boolean = other is Failure && exception == other.exception
+    override fun hashCode(): Int = exception.hashCode()
+    override fun toString(): String = "Failure($exception)"
+}
 
 @InlineOnly public inline fun <R> runCatching(block: () -> R): SuccessOrFailure<R> {
     contract {

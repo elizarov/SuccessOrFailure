@@ -33,6 +33,8 @@ class SuccessOrFailureTest {
         assertEquals(v, ok.getOrNull())
         assertEquals(v, ok.getOrElse { "DEF" })
         assertEquals(null, ok.exceptionOrNull())
+        assertEquals(v.toString(), ok.toString())
+//        assertEquals(ok, ok)
         if (topLevel) {
             checkSuccess(ok.map { 42 }, 42)
             checkSuccess(ok.mapCatching { 42 }, 42)
@@ -56,6 +58,7 @@ class SuccessOrFailureTest {
         assertEquals(null, fail.getOrNull())
         assertEquals("DEF", fail.getOrElse { "DEF" })
         assertEquals(msg, fail.exceptionOrNull()!!.message)
+        assertEquals("Failure(java.lang.IllegalStateException: $msg)", fail.toString())
         if (topLevel) {
             checkFailure(fail.map { 42 }, msg)
             checkFailure(fail.mapCatching { 42 }, msg)
