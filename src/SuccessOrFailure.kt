@@ -44,7 +44,13 @@ public inline class SuccessOrFailure<out T> @PublishedApi internal constructor(
 
     // identity
 
-    override fun equals(other: Any?): Boolean = other is SuccessOrFailure<*> && _value == other._value
+//    override fun equals(other: Any?): Boolean = other is SuccessOrFailure<*> && _value == other._value
+// todo: workaround for is/as bugs
+    override fun equals(other: Any?): Boolean {
+        val other = other as? SuccessOrFailure<*> ?: return false
+        return _value == other._value
+    }
+
     override fun hashCode(): Int = _value?.hashCode() ?: 0
     override fun toString(): String = _value.toString()
 

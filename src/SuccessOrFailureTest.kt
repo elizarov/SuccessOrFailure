@@ -34,7 +34,7 @@ class SuccessOrFailureTest {
         assertEquals(v, ok.getOrElse { "DEF" })
         assertEquals(null, ok.exceptionOrNull())
         assertEquals(v.toString(), ok.toString())
-//        assertEquals(ok, ok)
+        assertEquals(ok, ok)
         if (topLevel) {
             checkSuccess(ok.map { 42 }, 42)
             checkSuccess(ok.mapCatching { 42 }, 42)
@@ -45,8 +45,8 @@ class SuccessOrFailureTest {
         }
         var sCnt = 0
         var fCnt = 0
-        ok.onSuccess { sCnt++ }
-        ok.onFailure { fCnt++ }
+        assertEquals(ok, ok.onSuccess { sCnt++ })
+        assertEquals(ok, ok.onFailure { fCnt++ })
         assertEquals(1, sCnt)
         assertEquals(0, fCnt)
     }
@@ -59,6 +59,7 @@ class SuccessOrFailureTest {
         assertEquals("DEF", fail.getOrElse { "DEF" })
         assertEquals(msg, fail.exceptionOrNull()!!.message)
         assertEquals("Failure(java.lang.IllegalStateException: $msg)", fail.toString())
+        assertEquals(fail, fail)
         if (topLevel) {
             checkFailure(fail.map { 42 }, msg)
             checkFailure(fail.mapCatching { 42 }, msg)
@@ -69,8 +70,8 @@ class SuccessOrFailureTest {
         }
         var sCnt = 0
         var fCnt = 0
-        fail.onSuccess { sCnt++ }
-        fail.onFailure { fCnt++ }
+        assertEquals(fail, fail.onSuccess { sCnt++ })
+        assertEquals(fail, fail.onFailure { fCnt++ })
         assertEquals(0, sCnt)
         assertEquals(1, fCnt)
     }
