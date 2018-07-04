@@ -100,15 +100,12 @@ internal class Failure @PublishedApi internal constructor(
 
 // transformation
 
-// :todo: workaround for inline class cast bug
-inline fun <reified T> Any.cast(): T = this as T
-
 @InlineOnly public inline fun <R, T> SuccessOrFailure<T>.map(transform: (T) -> R): SuccessOrFailure<R> {
     contract {
         callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
     }
     return when(_value) {
-        is Failure -> this.cast()
+        is Failure -> SuccessOrFailure(_value)
         else -> SuccessOrFailure.success(transform(_value as T))
     }
 }
@@ -118,7 +115,7 @@ inline fun <reified T> Any.cast(): T = this as T
         callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
     }
     return when(_value) {
-        is Failure -> this.cast()
+        is Failure -> SuccessOrFailure(_value)
         else -> runCatching { transform(_value as T) }
     }
 }
