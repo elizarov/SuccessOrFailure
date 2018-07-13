@@ -30,9 +30,13 @@ class SuccessOrFailureTest {
         assertTrue(ok.isSuccess)
         assertFalse(ok.isFailure)
         assertEquals(v, ok.getOrThrow())
+        assertEquals(v, ok.getOrElse { throw it })
         assertEquals(v, ok.getOrNull())
-        assertEquals(v, ok.getOrElse { "DEF" })
+        assertEquals(v, ok.getOrElse { null })
+        assertEquals(v, ok.getOrElse { "EX:$it" })
+        assertEquals("V:$v", ok.fold({ "V:$it" }, { "EX:$it" }))
         assertEquals(null, ok.exceptionOrNull())
+        assertEquals(null, ok.fold(onSuccess = { null }, onFailure = { it }))
         assertEquals(v.toString(), ok.toString())
         assertEquals(ok, ok)
         if (topLevel) {
@@ -55,9 +59,13 @@ class SuccessOrFailureTest {
         assertFalse(fail.isSuccess)
         assertTrue(fail.isFailure)
         assertFails { fail.getOrThrow() }
+        assertFails { fail.getOrElse { throw it } }
         assertEquals(null, fail.getOrNull())
-        assertEquals("DEF", fail.getOrElse { "DEF" })
+        assertEquals(null, fail.getOrElse { null })
+        assertEquals("EX:java.lang.IllegalStateException: $msg", fail.getOrElse { "EX:$it" })
+        assertEquals("EX:java.lang.IllegalStateException: $msg", fail.fold({ "V:$it" }, { "EX:$it" }))
         assertEquals(msg, fail.exceptionOrNull()!!.message)
+        assertEquals(msg, fail.fold(onSuccess = { null }, onFailure = { it })!!.message)
         assertEquals("Failure(java.lang.IllegalStateException: $msg)", fail.toString())
         assertEquals(fail, fail)
         if (topLevel) {
