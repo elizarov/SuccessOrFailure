@@ -83,4 +83,28 @@ class SuccessOrFailureTest {
         assertEquals(0, sCnt)
         assertEquals(1, fCnt)
     }
+
+
+    @Test
+    fun testCrossInline() {
+        var invoked = false
+        val receiver = SuccessOrFailureReceiver<Int> { result ->
+            val intResult = result.getOrThrow()
+            assertEquals(42, intResult)
+            invoked = true
+        }
+        receiver.receive(SuccessOrFailure.success(42))
+        assertTrue(invoked)
+    }
 }
+
+abstract class SuccessOrFailureReceiver<T> {
+    abstract fun receive(result: SuccessOrFailure<T>)
+}
+
+inline fun <T> SuccessOrFailureReceiver(crossinline f: (SuccessOrFailure<T>) -> Unit): SuccessOrFailureReceiver<T> =
+    object : SuccessOrFailureReceiver<T>() {
+        override fun receive(result: SuccessOrFailure<T>) {
+            f(result)
+        }
+    }
